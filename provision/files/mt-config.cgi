@@ -41,4 +41,4 @@ DefaultLanguage ja
 
 ImageDriver Imager
 
-PIDFilePath /home/vagrant/mt7/run/mt7.pid
+PIDFilePath /vagrant/run/mt7.pid

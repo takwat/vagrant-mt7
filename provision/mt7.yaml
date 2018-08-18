@@ -1,16 +1,22 @@
 - name: provisioning
   hosts: all
   tasks:
+    - name: Set timezone to Asia/Tokyo
+      shell: timedatectl set-timezone Asia/Tokyo
+      become: true
+
     - name: yum update
       yum: 
         name=*
         state=present
       become: true
+
     - name: Install epel
       yum: 
         name=epel-release
         state=present
       become: true
+
     - name: Add nginx repository
       yum_repository:
         name: nginx
@@ -19,16 +25,19 @@
         gpgcheck: no
         enabled: yes
       become: true
+
     - name: Install nginx
       yum:
         name: nginx
         state: present
       become: true
+
     - name: Install Development Tools
       yum:
         name: "@Development Tools"
         state: present
       become: true
+
     - name: Install wget
       yum:
         name: "wget"
@@ -144,12 +153,12 @@
         enabled: true
       become: true
 
-
     - name: Add remi repository
       yum:
         name: "https://rpms.remirepo.net/enterprise/remi-release-7.rpm"
         state: present
       become: true
+
     - name: Install PHP
       yum: pkg={{ item }} state=present enablerepo=remi enablerepo=php72 enablerepo=epel
       with_items:
@@ -163,8 +172,7 @@
         - php-mbstring
         - php-pdo
         - php-mysqlnd
-        - php-pecl-igbinary
-        - php-pecl-redis
+        - php-pecl-memcached
       become: true
 
     - name: Check plenv directory
@@ -189,12 +197,12 @@
     - name: plenv local
       shell: bash -lc "plenv local 5.18.4"
       args:
-        chdir: ~/mt7
+        chdir: /vagrant
 
     - name: Install cpanm
       shell: bash -lc "plenv install-cpanm"
       args:
-        chdir: ~/mt7
+        chdir: /vagrant
     - name: Install CPAN pre-requires
       yum: pkg={{ item }} state=present enablerepo=remi enablerepo=php72 enablerepo=epel
       with_items:
@@ -270,7 +278,7 @@
     - name: Configure Movable Type
       template:
         src: ./files/mt-config.cgi
-        dest: ~/mt7/public/mt/mt-config.cgi
+        dest: /vagrant/public/mt/mt-config.cgi
         mode: 0755
 
     - name: Install supervisor
@@ -320,10 +328,7 @@
       become: true
 
     - name: php session directory
-      file: path=/home/vagrant/.php/session state=directory owner=vagrant group=vagrant mode=0755
-
-    - name: Changing permission vagrant's home
-      file: dest=/home/vagrant mode=a+x
+      file: path=/vagrant/.php/session state=directory owner=vagrant group=vagrant mode=0755
 
     - name: Start php-fpm
       service: name=php-fpm enabled=Yes state=started
@@ -331,4 +336,22 @@
 
     - name: Start nginx
       service: name=nginx enabled=Yes state=started
+      become: true
+
+    - name: Configure /vagrant mounted hook
+      template:
+        src: ./files/80-vagrant-mounted.rules
+        dest: /etc/udev/rules.d/80-vagrant-mounted.rules
+        owner: root
+        group: root
+        mode: 0644
+      become: true
+
+    - name: Configure /vagrant mounted hook script
+      template:
+        src: ./files/.udev-vagrant-mounted.sh
+        dest: /root/.udev-vagrant-mounted.sh
+        owner: root
+        group: root
+        mode: 0700
       become: true
