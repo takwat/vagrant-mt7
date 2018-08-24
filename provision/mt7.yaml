@@ -210,6 +210,12 @@
         - openssl-devel
         - expat
         - expat-devel
+        - libjpeg
+        - libjpeg-devel
+        - libpng
+        - libpng-devel
+        - giflib
+        - giflib-devel
         - ImageMagick
         - ImageMagick-devel
         - libxml2

@@ -1,1 +1,7 @@
 .vagrant/
+logs/
+public/
+run/
+!.gitkeep
+*.retry
+.perl-version
